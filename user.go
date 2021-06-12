@@ -125,7 +125,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 func register(w http.ResponseWriter, r *http.Request) {
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var user User
+	var alreadyExists []User
 	json.Unmarshal(reqBody, &user)
+	db.Where("Username = ?", user.Username).Find(&alreadyExists)
+
+	if len(alreadyExists) > 0 {
+		http.Error(w, "User already exists", http.StatusUnprocessableEntity)
+
+	}
 	bytesPwd := []byte(user.Password)
 	hash := HashAndSalt(bytesPwd)
 	user.Password = hash
